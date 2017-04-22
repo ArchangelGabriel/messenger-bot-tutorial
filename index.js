@@ -15,6 +15,8 @@ const bodyParser = require('body-parser')
 const request = require('request')
 const app = express()
 const https = require('https')
+const fs = require('fs')
+const morgan = require('morgan')
 
 app.set('port', (process.env.PORT || 5000))
 
@@ -23,6 +25,8 @@ app.use(bodyParser.urlencoded({extended: false}))
 
 // parse application/json
 app.use(bodyParser.json())
+
+app.use(morgan('combined'))
 
 // index
 app.get('/', function (req, res) {
@@ -137,8 +141,8 @@ function sendGenericMessage(sender) {
 }
 
 var options = {
-  key: fs.readFileSync('~/key.pem'),
-  cert: fs.readFileSync('~/cert.pem')
+  key: fs.readFileSync('key.pem'),
+  cert: fs.readFileSync('cert.pem')
 };
 
 https.createServer(options, app).listen(app.get('port'));
