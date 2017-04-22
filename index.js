@@ -2,7 +2,7 @@
 /*
 Please report any bugs to nicomwaks@gmail.com
 
-i have added console.log on line 48 
+i have added console.log on line 48
 
 
 
@@ -14,6 +14,9 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const request = require('request')
 const app = express()
+const https = require('https')
+const fs = require('fs')
+const morgan = require('morgan')
 
 app.set('port', (process.env.PORT || 5000))
 
@@ -22,6 +25,8 @@ app.use(bodyParser.urlencoded({extended: false}))
 
 // parse application/json
 app.use(bodyParser.json())
+
+app.use(morgan('combined'))
 
 // index
 app.get('/', function (req, res) {
@@ -45,7 +50,7 @@ app.post('/webhook/', function (req, res) {
 		let sender = event.sender.id
 		if (event.message && event.message.text) {
 			let text = event.message.text
-			if (text === 'Generic'){ 
+			if (text === 'Generic'){
 				console.log("welcome to chatbot")
 				//sendGenericMessage(sender)
 				continue
@@ -64,11 +69,11 @@ app.post('/webhook/', function (req, res) {
 
 // recommended to inject access tokens as environmental variables, e.g.
 // const token = process.env.FB_PAGE_ACCESS_TOKEN
-const token = "<FB_PAGE_ACCESS_TOKEN>"
+const token = "EAAGZAivn8YWsBAAZAsT7V2z4FZCqGK4jEEPe1w0chZCFcWtqWBEiZCZALZAA5wi8nD3norum5PLptMNfkPjaK5LXgNYSOUZCUcsd6G0p8uiVnHNZCjuboWPQZCPew0OA2zgswPm1ZB2CFRCo1xBbhNZAZCyvdwwH1PSJFUOYR4IXQZCVxlTAZDZD"
 
 function sendTextMessage(sender, text) {
 	let messageData = { text:text }
-	
+
 	request({
 		url: 'https://graph.facebook.com/v2.6/me/messages',
 		qs: {access_token:token},
@@ -84,6 +89,20 @@ function sendTextMessage(sender, text) {
 			console.log('Error: ', response.body.error)
 		}
 	})
+}
+
+function sendListMessage(sender) {
+	let messageData = {
+		attachment: {
+			type: "template",
+			payload: {
+				template_type: "list",
+				elements: [{
+
+				}]
+			}
+		}
+	};
 }
 
 function sendGenericMessage(sender) {
@@ -135,7 +154,9 @@ function sendGenericMessage(sender) {
 	})
 }
 
-// spin spin sugar
-app.listen(app.get('port'), function() {
-	console.log('running on port', app.get('port'))
-})
+var options = {
+  key: fs.readFileSync('key.pem'),
+  cert: fs.readFileSync('cert.pem')
+};
+
+https.createServer(options, app).listen(app.get('port'));
