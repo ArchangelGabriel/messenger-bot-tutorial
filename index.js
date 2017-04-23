@@ -138,12 +138,10 @@ function sendTrendingMessage(id, trends, options) {
             type: "template",
             payload: Object.assign({}, {
                 template_type: "list",
-                elements: skip ? renderTrends(trends, skip, limit) : [{
-                        title: 'Trending Topics',
-                        image_url: 'http://sanctuaryucc.org/wp-content/uploads/2015/03/Que-es-trending-topic-twitter-como-se-alcanza02-300x202.png'
-                    },
-                    ...renderTrends(trends, skip, limit)
-                ],
+                elements: skip ? renderTrends(trends, skip, limit) : [
+									{title: 'Trending Topics',image_url: 'http://sanctuaryucc.org/wp-content/uploads/2015/03/Que-es-trending-topic-twitter-como-se-alcanza02-300x202.png'},
+                    
+                ].concat(renderTrends(trends, skip, limit)),
                 buttons: skip ? [{
                     title: 'Main Menu',
                     type: 'postback',
