@@ -173,12 +173,12 @@ function sendTrendingMessage(id, trends, options) {
 }
 
 function sendNewsMessage(id, trends, options) {
-    /*var min, max;
+    var min, max;
     options = options || {};
     var skip = options.skip ? options.skip : 0;
     var limit = options.limit ? options.limit : 3;
 
-    _.forEach(trends, function(trend) {
+    /*_.forEach(trends, function(trend) {
         min = Math.min(min, trend.tweet_volume)
         max = Math.max(max, trend.tweet_volume)
     });*/
@@ -199,7 +199,7 @@ function sendNewsMessage(id, trends, options) {
             type: "template",
             payload: Object.assign({}, {
                 template_type: "list",
-                elements: skip ? renderTrends(trends, skip, limit) : [
+                elements: [
                     { title: 'News Topics', image_url: 'http://sanctuaryucc.org/wp-content/uploads/2015/03/Que-es-trending-topic-twitter-como-se-alcanza02-300x202.png' },
 
                 ].concat(renderTrends(trends, skip, limit)),
