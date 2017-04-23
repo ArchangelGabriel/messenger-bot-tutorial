@@ -140,7 +140,7 @@ function sendTrendingMessage(id, trends, options) {
                         title: 'Trending Topics',
                         image_url: 'http://sanctuaryucc.org/wp-content/uploads/2015/03/Que-es-trending-topic-twitter-como-se-alcanza02-300x202.png'
                     },
-                    ...renderTrends(trends, skip, limit)
+                    renderTrends(trends, skip, limit)
                 ],
                 buttons: skip ? [{
                     title: 'Main Menu',
