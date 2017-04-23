@@ -55,14 +55,16 @@ app.post('/webhook/', function(req, res) {
         const text = message && messaging_event.message.text
 
         if (text) {
-            text = text.toLowercase();
+            text = text.toLowerCase();
             switch (text) {
                 case 'hackhouston':
                     sendTextMessage(id, '22-23 April \n\nOn Saturday April 22, Texas Southern University will be hosting its first ever hackathon... \n\n@Texas Southern University Recreation Center')
                     break
                 case 'basketball':
-                    sendTextMessage(id, '21-23 April \n\nOn Friday April 21, The Oklahoma City Thunder beat the Rockets 115-113 in a playoff defining match after losing their two previous playoff games. Teams with an 0-2 deficit in the playoffs like the Thunder historically have a historically abysmal 7% chance of winning said series.\n The next game will be Today, April 23 at 2:30 PM at OKC');
+                    sendTextMessage(id, '21-23 April \n\nOn Friday April 21, The Oklahoma City Thunder beat the Rockets 115-113 in a playoff defining match after losing their two previous playoff games. Teams with an 0-2 deficit in the playoffs like the Thunder historically have a historically abysmal 7% chance of winning said series.\nThe next game will be Today, April 23 at 2:30 PM at OKC');
                     break;
+                case 'domestic politics':
+
                 default:
                     sendTextMessage(id, 'Opps, sorry but there\'s no topic related to that :(')
                     break
@@ -197,8 +199,6 @@ function sendTextMessage(id, text) {
 }
 
 function sendListMessage(sender) {
-
-
     let messageData = {
         attachment: {
             type: "template",
