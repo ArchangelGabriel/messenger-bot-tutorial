@@ -64,6 +64,7 @@ app.post('/webhook/', function(req, res) {
                     sendTextMessage(id, '21-23 April \n\nOn Friday April 21, The Oklahoma City Thunder beat the Rockets 115-113 in a playoff defining match after losing their two previous playoff games. Teams with an 0-2 deficit in the playoffs like the Thunder historically have a historically abysmal 7% chance of winning said series.\nThe next game will be Today, April 23 at 2:30 PM at OKC');
                     break;
                 case 'domestic politics':
+                case 'domestic news':
                     https.get('https://newsapi.org/v1/articles?source=usa-today&sortBy=top&apiKey=59c50177db444df19273b87ffc2a79ee', function(res) {
                         res.on('data', function(data) {
                             let jsonData = JSON.parse(data);
@@ -71,6 +72,14 @@ app.post('/webhook/', function(req, res) {
                         })
                     });
                     break;
+                case 'international politics':
+                case 'international news':
+                    https.get('https://newsapi.org/v1/articles?source=bbc-news&sortBy=top&apiKey=59c50177db444df19273b87ffc2a79ee', function(res) {
+                        res.on('data', function(data) {
+                            let jsonData = JSON.parse(data);
+                            sendNewsMessage(id, jsonData['articles']);
+                        })
+                    });
                 default:
                     sendTextMessage(id, 'Opps, sorry but there\'s no topic related to that :(')
                     break
@@ -200,7 +209,7 @@ function sendNewsMessage(id, trends, options) {
             payload: Object.assign({}, {
                 template_type: "list",
                 elements: [
-                    { title: 'News Topics', image_url: 'http://sanctuaryucc.org/wp-content/uploads/2015/03/Que-es-trending-topic-twitter-como-se-alcanza02-300x202.png' },
+                    { title: 'News Topics', image_url: 'https://pbs.twimg.com/profile_images/1843856587/news_icon_big_400x400.png' },
 
                 ].concat(renderTrends(trends, skip, limit)),
                 /*buttons: skip ? [{
