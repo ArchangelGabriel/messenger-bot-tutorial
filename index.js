@@ -66,7 +66,7 @@ app.post('/webhook/', function(req, res) {
                 case 'domestic politics':
                     https.get('https://newsapi.org/v1/articles?source=usa-today&sortBy=top&apiKey=59c50177db444df19273b87ffc2a79ee', function(res) {
                         res.on('data', function(data) {
-                            jsonData = JSON.parse(data);
+                            let jsonData = JSON.parse(data);
                             sendTextMessage(id, jsonData);
                         })
                     });
