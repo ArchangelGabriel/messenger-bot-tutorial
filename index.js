@@ -64,9 +64,13 @@ app.post('/webhook/', function(req, res) {
                     sendTextMessage(id, '21-23 April \n\nOn Friday April 21, The Oklahoma City Thunder beat the Rockets 115-113 in a playoff defining match after losing their two previous playoff games. Teams with an 0-2 deficit in the playoffs like the Thunder historically have a historically abysmal 7% chance of winning said series.\nThe next game will be Today, April 23 at 2:30 PM at OKC');
                     break;
                 case 'domestic politics':
-                    getTrending().then(response => JSON.parse(response.body)[0].trends.filter(t => t.tweet_volume).sort((a, b) => a.tweet_volume < b.tweet_volume)).then(trends => {
-                        sendTrendingMessage(id, trends)
+                    https.get('https://newsapi.org/v1/articles?source=usa-today&sortBy=top&apiKey=59c50177db444df19273b87ffc2a79ee', function(res) {
+                        res.on('data', function(data) {
+                            jsonData = JSON.parse(data);
+                            sendTextMessage(id, jsonData);
+                        })
                     });
+                    break;
                 default:
                     sendTextMessage(id, 'Opps, sorry but there\'s no topic related to that :(')
                     break
