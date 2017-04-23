@@ -52,7 +52,7 @@ app.post('/webhook/', function(req, res) {
     _.forEach(messaging_events, function(messaging_event) {
         const id = messaging_event.sender.id
         const message = messaging_event.message
-        const text = message && messaging_event.message.text
+        let text = message && messaging_event.message.text
 
         if (text) {
             text = text.toLowerCase();
