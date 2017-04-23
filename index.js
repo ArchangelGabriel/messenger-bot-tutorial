@@ -15,8 +15,11 @@ const bodyParser = require('body-parser')
 const request = require('request')
 const app = express()
 const https = require('https')
-const fs = require('fs')
 const morgan = require('morgan')
+const _ = require('lodash')
+const sendMessage = require('./sendMessage.js');
+const getTrending = require('./twitterApi.js').getTrending;
+const totalToRgb = require('./totalToRgb.js');
 
 app.set('port', (process.env.PORT || 5000))
 
@@ -44,54 +47,162 @@ app.get('/webhook/', function (req, res) {
 
 // to post data
 app.post('/webhook/', function (req, res) {
-	let messaging_events = req.body.entry[0].messaging
-	for (let i = 0; i < messaging_events.length; i++) {
-		let event = req.body.entry[0].messaging[i]
-		let sender = event.sender.id
-		if (event.message && event.message.text) {
-			let text = event.message.text
-			if (text === 'Generic'){
-				console.log("welcome to chatbot")
-				//sendGenericMessage(sender)
-				continue
+	const messaging_events = req.body.entry[0].messaging
+	console.log(messaging_events)
+	_.forEach(messaging_events, function(messaging_event) {
+		const id = messaging_event.sender.id
+		const message = messaging_event.message
+		const text = message && messaging_event.message.text
+
+		if (text) {
+			switch(text) {
+				case 'hackhouston':
+					sendTextMessage(id, '22-23 April \n\nOn Saturday April 22, Texas Southern University will be hosting its first ever hackathon... \n\n@Texas Southern University Recreation Center')
+					break
+				default:
+					sendTextMessage(id, 'Opps, sorry but there\'s no topic related to that :(')
+					break
 			}
-			sendTextMessage(sender, "Text received, echo: " + text.substring(0, 200))
 		}
-		if (event.postback) {
-			let text = JSON.stringify(event.postback)
-			sendTextMessage(sender, "Postback received: "+text.substring(0, 200), token)
-			continue
+
+		const postback = messaging_event.postback
+		let payload = postback && postback.payload
+
+		if (postback) {
+			switch(payload) {
+				case 'USER_DEFINED_PAYLOAD':
+					sendGreetingMessage(id)
+					break
+				case 'TRENDING_TOPICS':
+					return getTrending()
+						.then(response => JSON.parse(response.body)[0].trends.filter(t => t.tweet_volume).sort((a, b) => a.tweet_volume < b.tweet_volume))
+						.then(trends => {
+							sendTrendingMessage(id, trends)
+						})
+				case 'MAKE_IT_RAIN':
+					break
+
+				default:
+					payload = JSON.parse(decodeURI(payload))[0].payload
+					switch(payload.type) {
+						case 'VIEW_MORE_TRENDING':
+							return getTrending()
+								.then(response => JSON.parse(response.body)[0].trends.filter(t => t.tweet_volume).sort((a, b) => a.tweet_volume < b.tweet_volume))
+								.then(trends => {
+									sendTrendingMessage(id, trends, { skip: payload.skip, limit: payload.limit })
+								})
+							break
+						default:
+							break
+					}
+					break
+			}
 		}
-	}
+
+	})
 	res.sendStatus(200)
 })
 
-
-// recommended to inject access tokens as environmental variables, e.g.
-// const token = process.env.FB_PAGE_ACCESS_TOKEN
 const token = "EAAGZAivn8YWsBAAZAsT7V2z4FZCqGK4jEEPe1w0chZCFcWtqWBEiZCZALZAA5wi8nD3norum5PLptMNfkPjaK5LXgNYSOUZCUcsd6G0p8uiVnHNZCjuboWPQZCPew0OA2zgswPm1ZB2CFRCo1xBbhNZAZCyvdwwH1PSJFUOYR4IXQZCVxlTAZDZD"
 
-function sendTextMessage(sender, text) {
-	let messageData = { text:text }
+function sendTrendingMessage(id, trends, options) {
+	var min, max;
+	options = options || {};
+	var skip = options.skip ? options.skip : 0;
+	var limit = options.limit ? options.limit : 3;
 
-	request({
-		url: 'https://graph.facebook.com/v2.6/me/messages',
-		qs: {access_token:token},
-		method: 'POST',
-		json: {
-			recipient: {id:sender},
-			message: messageData,
+	_.forEach(trends, function(trend) {
+		min = Math.min(min, trend.tweet_volume)
+		max = Math.max(max, trend.tweet_volume)
+	});
+
+	let renderTrends = (trends, skip, limit) => trends.map(trend => ({
+		title: trend.name,
+		subtitle: `${trend.tweet_volume} tweets about this` || '',
+		"default_action": {
+      "type": "web_url",
+      "url": trend.url.replace("http://", "https://"),
+      "messenger_extensions": true,
+      "webview_height_ratio": "tall"
+    }
+	})).slice(skip, skip + limit)
+
+	let message = {
+		attachment: {
+			type: "template",
+			payload: Object.assign({}, {
+				template_type: "list",
+				elements: skip ? renderTrends(trends, skip, limit) : [
+					{
+						title: 'Trending Topics',
+						image_url: 'http://sanctuaryucc.org/wp-content/uploads/2015/03/Que-es-trending-topic-twitter-como-se-alcanza02-300x202.png'
+					},
+					...renderTrends(trends, skip, limit)
+				],
+				buttons: skip ? [
+					{
+						title: 'Main Menu',
+						type: 'postback',
+						payload: 'USER_DEFINED_PAYLOAD'
+					}
+				] : [
+					{
+						title: 'View More',
+						type: 'postback',
+						payload: encodeURI(JSON.stringify([
+							{
+								title: 'View More',
+								type: 'postback',
+								payload: {
+									type: 'VIEW_MORE_TRENDING',
+									skip: 3,
+									limit: 4
+								}
+							}
+						]))
+					}
+				]
+			}, skip ? { top_element_style: 'compact' } : {})
 		}
-	}, function(error, response, body) {
-		if (error) {
-			console.log('Error sending messages: ', error)
-		} else if (response.body.error) {
-			console.log('Error: ', response.body.error)
+	}
+
+	sendMessage(id, message)
+}
+
+function sendGreetingMessage(id) {
+	let message = {
+		attachment: {
+			type: 'template',
+			payload: {
+				template_type: 'button',
+				text: 'We curate the most relevant topics to you right now so you\'ll never have to feel out of place again!',
+				buttons: [
+					{
+            "type":"postback",
+            "title":"Make it rain!",
+            "payload":"MAKE_IT_RAIN"
+          },
+					{
+						"type":"postback",
+            "title":"Trending in Twitter",
+            "payload":"TRENDING_TOPICS"
+					}
+				]
+			}
 		}
-	})
+	}
+
+	sendMessage(id, message)
+}
+
+function sendTextMessage(id, text) {
+	let message = { text: text }
+	sendMessage(id, message)
 }
 
 function sendListMessage(sender) {
+
+
 	let messageData = {
 		attachment: {
 			type: "template",
@@ -102,7 +213,7 @@ function sendListMessage(sender) {
 				}]
 			}
 		}
-	};
+	}
 }
 
 function sendGenericMessage(sender) {
@@ -154,9 +265,6 @@ function sendGenericMessage(sender) {
 	})
 }
 
-var options = {
-  key: fs.readFileSync('key.pem'),
-  cert: fs.readFileSync('cert.pem')
-};
-
-https.createServer(options, app).listen(app.get('port'));
+app.listen(app.get('port'), function() {
+	console.log('running on port', app.get('port'))
+})
