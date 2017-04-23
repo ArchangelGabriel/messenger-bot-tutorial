@@ -80,6 +80,7 @@ app.post('/webhook/', function(req, res) {
                             sendNewsMessage(id, jsonData['articles']);
                         })
                     });
+                    break;
                 default:
                     sendTextMessage(id, 'Opps, sorry but there\'s no topic related to that :(')
                     break
