@@ -15,8 +15,8 @@ const bodyParser = require('body-parser')
 const request = require('request')
 const app = express()
 const https = require('https')
-const fs = require('fs')
 const morgan = require('morgan')
+const _ = require('lodash')
 
 app.set('port', (process.env.PORT || 5000))
 
@@ -44,25 +44,15 @@ app.get('/webhook/', function (req, res) {
 
 // to post data
 app.post('/webhook/', function (req, res) {
-	let messaging_events = req.body.entry[0].messaging
-	for (let i = 0; i < messaging_events.length; i++) {
-		let event = req.body.entry[0].messaging[i]
-		let sender = event.sender.id
-		if (event.message && event.message.text) {
-			let text = event.message.text
-			if (text === 'Generic'){
-				console.log("welcome to chatbot")
-				//sendGenericMessage(sender)
-				continue
-			}
-			sendTextMessage(sender, "Text received, echo: " + text.substring(0, 200))
+	const messaging_events = req.body.entry[0].messaging
+	_.forEach(messaging_events, function(messaging_event) {
+		const id = messaging_event.sender.id;
+		const message = messaging_event.message;
+		const text = message && messaging_event.message.text;
+		if (message && text) {
+			sendTextMessage(id, text.substring(0, 200))
 		}
-		if (event.postback) {
-			let text = JSON.stringify(event.postback)
-			sendTextMessage(sender, "Postback received: "+text.substring(0, 200), token)
-			continue
-		}
-	}
+	})
 	res.sendStatus(200)
 })
 
@@ -75,8 +65,7 @@ function sendTextMessage(sender, text) {
 	let messageData = { text:text }
 
 	request({
-		url: 'https://graph.facebook.com/v2.6/me/messages',
-		qs: {access_token:token},
+		url: `https://graph.facebook.com/v2.6/me/messages?access_token=${token}`,
 		method: 'POST',
 		json: {
 			recipient: {id:sender},
@@ -154,9 +143,6 @@ function sendGenericMessage(sender) {
 	})
 }
 
-var options = {
-  key: fs.readFileSync('key.pem'),
-  cert: fs.readFileSync('cert.pem')
-};
-
-https.createServer(options, app).listen(app.get('port'));
+app.listen(app.get('port'), function() {
+	console.log('running on port', app.get('port'))
+})
