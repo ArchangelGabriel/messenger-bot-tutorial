@@ -55,10 +55,13 @@ app.post('/webhook/', function (req, res) {
 		const text = message && messaging_event.message.text
 
 		if (text) {
+			text = text.toLowercase();
 			switch(text) {
 				case 'hackhouston':
 					sendTextMessage(id, '22-23 April \n\nOn Saturday April 22, Texas Southern University will be hosting its first ever hackathon... \n\n@Texas Southern University Recreation Center')
 					break
+				case 'basketball':
+					
 				default:
 					sendTextMessage(id, 'Opps, sorry but there\'s no topic related to that :(')
 					break
