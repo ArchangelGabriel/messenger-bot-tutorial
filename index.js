@@ -63,6 +63,12 @@ app.post('/webhook/', function(req, res) {
                 case 'basketball':
                     sendTextMessage(id, '21-23 April \n\nOn Friday April 21, The Oklahoma City Thunder beat the Rockets 115-113 in a playoff defining match after losing their two previous playoff games. Teams with an 0-2 deficit in the playoffs like the Thunder historically have a historically abysmal 7% chance of winning said series.\nThe next game will be Today, April 23 at 2:30 PM at OKC');
                     break;
+                case 'movies':
+                    sendTextMessage(id, '66% Rotten Tomatoes Critic: \nThe Fate of the Furious opens a new chapter in the franchise, fueled by the same infectious cast chemistry and over-the-top action fans have come to expect.');
+                    break;
+                case 'charlie murphy':
+                    sendTextMessage(id, 'Charles Quinton Murphy Jr. (July 12, 1959 – April 12, 2017) was an American actor, comedian, voice artist, and writer. Murphy was best known as a writer and cast member of the Comedy Central sketch-comedy series Chappelle\'s Show. He was the older brother of Eddie Murphy.');
+                    break;
                 case 'domestic politics':
                 case 'domestic news':
                     https.get('https://newsapi.org/v1/articles?source=usa-today&sortBy=top&apiKey=59c50177db444df19273b87ffc2a79ee', function(res) {
