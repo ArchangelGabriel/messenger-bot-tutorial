@@ -64,7 +64,9 @@ app.post('/webhook/', function(req, res) {
                     sendTextMessage(id, '21-23 April \n\nOn Friday April 21, The Oklahoma City Thunder beat the Rockets 115-113 in a playoff defining match after losing their two previous playoff games. Teams with an 0-2 deficit in the playoffs like the Thunder historically have a historically abysmal 7% chance of winning said series.\nThe next game will be Today, April 23 at 2:30 PM at OKC');
                     break;
                 case 'domestic politics':
-
+                    getTrending().then(response => JSON.parse(response.body)[0].trends.filter(t => t.tweet_volume).sort((a, b) => a.tweet_volume < b.tweet_volume)).then(trends => {
+                        sendTrendingMessage(id, trends)
+                    });
                 default:
                     sendTextMessage(id, 'Opps, sorry but there\'s no topic related to that :(')
                     break
@@ -139,8 +141,8 @@ function sendTrendingMessage(id, trends, options) {
             payload: Object.assign({}, {
                 template_type: "list",
                 elements: skip ? renderTrends(trends, skip, limit) : [
-									{title: 'Trending Topics',image_url: 'http://sanctuaryucc.org/wp-content/uploads/2015/03/Que-es-trending-topic-twitter-como-se-alcanza02-300x202.png'},
-                    
+                    { title: 'Trending Topics', image_url: 'http://sanctuaryucc.org/wp-content/uploads/2015/03/Que-es-trending-topic-twitter-como-se-alcanza02-300x202.png' },
+
                 ].concat(renderTrends(trends, skip, limit)),
                 buttons: skip ? [{
                     title: 'Main Menu',
