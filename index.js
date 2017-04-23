@@ -67,7 +67,7 @@ app.post('/webhook/', function(req, res) {
                     https.get('https://newsapi.org/v1/articles?source=usa-today&sortBy=top&apiKey=59c50177db444df19273b87ffc2a79ee', function(res) {
                         res.on('data', function(data) {
                             let jsonData = JSON.parse(data);
-                            sendTextMessage(id, jsonData);
+                            sendNewsMessage(id, jsonData['articles']);
                         })
                     });
                     break;
@@ -172,6 +172,61 @@ function sendTrendingMessage(id, trends, options) {
     sendMessage(id, message)
 }
 
+function sendNewsMessage(id, trends, options) {
+    /*var min, max;
+    options = options || {};
+    var skip = options.skip ? options.skip : 0;
+    var limit = options.limit ? options.limit : 3;
+
+    _.forEach(trends, function(trend) {
+        min = Math.min(min, trend.tweet_volume)
+        max = Math.max(max, trend.tweet_volume)
+    });*/
+
+    let renderTrends = (trends, skip, limit) => trends.map(trend => ({
+        title: trend.title,
+        subtitle: trend.author,
+        "default_action": {
+            "type": "web_url",
+            "url": trend.url.replace("http://", "https://"),
+            "messenger_extensions": true,
+            "webview_height_ratio": "tall"
+        }
+    })).slice(0, 3)
+
+    let message = {
+        attachment: {
+            type: "template",
+            payload: Object.assign({}, {
+                template_type: "list",
+                elements: skip ? renderTrends(trends, skip, limit) : [
+                    { title: 'News Topics', image_url: 'http://sanctuaryucc.org/wp-content/uploads/2015/03/Que-es-trending-topic-twitter-como-se-alcanza02-300x202.png' },
+
+                ].concat(renderTrends(trends, skip, limit)),
+                /*buttons: skip ? [{
+                    title: 'Main Menu',
+                    type: 'postback',
+                    payload: 'USER_DEFINED_PAYLOAD'
+                }] : [{
+                    title: 'View More',
+                    type: 'postback',
+                    payload: encodeURI(JSON.stringify([{
+                        title: 'View More',
+                        type: 'postback',
+                        payload: {
+                            type: 'VIEW_MORE_TRENDING',
+                            skip: 3,
+                            limit: 4
+                        }
+                    }]))
+                }]*/
+            }, skip ? { top_element_style: 'compact' } : {})
+        }
+    }
+
+    sendMessage(id, message)
+}
+
 function sendGreetingMessage(id) {
     let message = {
         attachment: {
@@ -196,6 +251,8 @@ function sendGreetingMessage(id) {
 
     sendMessage(id, message)
 }
+
+
 
 function sendTextMessage(id, text) {
     let message = { text: text }
